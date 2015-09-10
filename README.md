@@ -79,6 +79,10 @@ Hopscotch::Runner.call_each(
 # => "success"
 ```
 
+### Top level architecture
+
+![hopscotch](https://cloud.githubusercontent.com/assets/873687/9781348/8c23c872-57d6-11e5-8903-991838f4b3c6.png)
+
 ### Runners
 A runner is a pipeline to run steps and handle the success or failure of the group of them.
 
