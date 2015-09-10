@@ -22,7 +22,7 @@ Or install it yourself as:
 
 The Hopscotch gem is made up out of 2 essential parts. Runners and Steps.
 
-Some simple usage examples.
+Some simple usage examples. Detailed explanations below.
 
 ```ruby
 # - simple lambdas steps
@@ -72,7 +72,7 @@ module ChainSteps
 end
 
 Hopscotch::Runner.call_each(
-  -> { ChainSteps.call },
+  ChainSteps,
   success: -> { "success" },
   failure: -> (x) { "failure: #{x}" },
 )
@@ -148,7 +148,6 @@ module Workflow
     extend self
 
     def call(name, success:, failure:)
-
       Hopscotch::Runner.call_each(
         -> { Service::CreateUser.call(name) },
         success: -> { success.call("Workflow::CreateUser worked!", Time.now.to_i) },
@@ -318,7 +317,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/hopscotch. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/blake-education/hopscotch. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 
 ## License
