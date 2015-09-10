@@ -20,9 +20,31 @@ Or install it yourself as:
 
 ## Usage
 
-
 The Hopscotch gem is made up out of 2 essential parts. Runners and Steps.
 
+A simple example.
+
+```
+λ bin/console
+irb(main):001:0> module ActiveRecord
+irb(main):002:1>   class Rollback < StandardError; end
+irb(main):003:1>   class Base
+irb(main):004:2>     def self.transaction(&blk)
+irb(main):005:3>       begin
+irb(main):006:4*         yield
+irb(main):007:4>       rescue Rollback
+irb(main):008:4>       end
+irb(main):009:3>     end
+irb(main):010:2>   end
+irb(main):011:1> end
+=> :transaction
+irb(main):012:0> Hopscotch::Runner.call_each(-> { "abc" }, success: -> { puts "success it worked" }, failure: -> (x) { puts "123" })
+success it worked
+=> nil
+irb(main):013:0> Hopscotch::Runner.call_each(-> { Hopscotch::Error.to_error("abc") }, success: -> { puts "success it worked" }, failure: -> (x) { puts "it failed!" })
+it failed!
+=> nil
+```
 
 ### Runners
 A runner is a pipeline to run steos and handle the success or failure of the group of them.
@@ -105,7 +127,7 @@ module Workflow
       # but you can really do what ever you want in here..
       form = Form::NewStudent.new(student_params)
 
-      Hopscotch::Runners.call_each(
+      Hopscotch::Runner.call_each(
         -> { Service::CreateStudent.call(form) },
         -> { Service::NotifyStudent.call(form) }
         success: success,
@@ -160,7 +182,7 @@ module Workflow
     def call(student_params, success:, failure:)
       form = Form::NewStudent.new(student_params)
 
-      Hopscotch::Runners.call_each(
+      Hopscotch::Runner.call_each(
         -> { Service::CreateStudent.call(form) }, # this is duplication.. :(
         -> { Service::NotifyStudent.call(form) }, # this is duplication.. :(
         -> { Service::GiveFreePointsToStudent.call(form) }, # this sucker is the new one
@@ -201,7 +223,7 @@ module Workflow
     def call(student_params, success:, failure:)
       form = Form::NewStudent.new(student_params)
 
-      Hopscotch::Runners.call_each(
+      Hopscotch::Runner.call_each(
         -> { Service::CreateStudentAndNotify.call(form) },
         success: success,
         failure: failure
@@ -215,7 +237,7 @@ module Workflow
     def call(student_params, success:, failure:)
       form = Form::NewStudent.new(student_params)
 
-      Hopscotch::Runners.call_each(
+      Hopscotch::Runner.call_each(
         -> { Service::CreateStudentAndNotify.call(form) },
         -> { Service::GiveFreePointsToStudent.call(form) },
         success: success,
