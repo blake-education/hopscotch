@@ -21,6 +21,10 @@ module Hopscotch
   module StepComposer
     extend self
 
+    def call_each(*fns)
+      Hopscotch::StepComposers::Default.call_each(fns)
+    end
+
     def compose_with_error_handling(*fns)
       Hopscotch::StepComposers::Default.compose_with_error_handling(fns)
     end
