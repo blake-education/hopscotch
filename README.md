@@ -84,9 +84,25 @@ A runner is a pipeline to run steps and handle the success or failure of the gro
 
 Runners are not meant to be the point of reuse or shared behavior. They are simply a way to run steps.
 
+Runners can call an array of steps and compose them under the hood.
+
 ```ruby
 Hopscotch::Runner.call_each(
   -> { Hopscotch::Step.success! },
+  -> { Hopscotch::Step.success! },
+  success: -> { success.call("The step was successful!", Time.now.to_i) },
+  failure: failure
+)
+```
+
+You can optionally compose the steps manually (great for reuse) and just make use of the `Runner#call` method.
+
+```ruby
+success_step_1 = -> { Hopscotch::Step.success! }
+success_step_2 = -> { Hopscotch::Step.success! }
+
+Hopscotch::Runner.call(
+  Hopscotch::StepComposer.call_each(success_step_1, success_step_2),
   success: -> { success.call("The step was successful!", Time.now.to_i) },
   failure: failure
 )
