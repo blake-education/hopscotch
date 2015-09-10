@@ -9,6 +9,10 @@ module Hopscotch
   module Runner
     extend self
 
+    def call(fn, failure:, success:)
+      Hopscotch::Runners::Default.call(fn, failure: failure, success: success)
+    end
+
     def call_each(*fns, failure:, success:)
       Hopscotch::Runners::Default.call_each(*fns, failure: failure, success: success)
     end
