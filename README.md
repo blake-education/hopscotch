@@ -25,36 +25,16 @@ The Hopscotch gem is made up out of 2 essential parts. Runners and Steps.
 A simple example.
 
 ```
-λ bin/console
-irb(main):001:0> module ActiveRecord
-irb(main):002:1>   class Rollback < StandardError; end
-irb(main):003:1>   class Base
-irb(main):004:2>     def self.transaction(&blk)
-irb(main):005:3>       begin
-irb(main):006:4*         yield
-irb(main):007:4>       rescue Rollback
-irb(main):008:4>       end
-irb(main):009:3>     end
-irb(main):010:2>   end
-irb(main):011:1> end
-=> :transaction
-irb(main):012:0>
-irb(main):013:0* success_step = -> { Hopscotch::Step.success! }
-=> #<Proc:0x007ffea21ebc90@(irb):13 (lambda)>
-irb(main):014:0> fail_step = -> { Hopscotch::Step.failure!("bad") }
-=> #<Proc:0x007ffea213ce70@(irb):14 (lambda)>
-irb(main):015:0>
-irb(main):016:0* reduced_fn = Hopscotch::StepComposer.compose_with_error_handling(success_step, success_step, success_step)
-=> #<Proc:0x007ffea21c6760@/Users/garrett/Blake/hopscotch/lib/hopscotch/step_composers/default.rb:33 (lambda)>
-irb(main):017:0>
-irb(main):018:0* Hopscotch::Runner.call(reduced_fn, success: -> { "success" }, failure: -> (x) { "failure #{x}" })
-=> "success"
-irb(main):019:0>
-irb(main):020:0* error_reduced_fn = Hopscotch::StepComposer.compose_with_error_handling(success_step, fail_step, success_step)
-=> #<Proc:0x007ffea2184b08@/Users/garrett/Blake/hopscotch/lib/hopscotch/step_composers/default.rb:33 (lambda)>
-irb(main):021:0>
-irb(main):022:0* Hopscotch::Runner.call(error_reduced_fn, success: -> { "success" }, failure: -> (x) { "failure #{x}" })
-=> "failure bad"
+success_step = -> { Hopscotch::Step.success! }
+fail_step = -> { Hopscotch::Step.failure!("bad") }
+
+reduced_fn = Hopscotch::StepComposer.compose_with_error_handling(success_step, success_step, success_step)
+Hopscotch::Runner.call(reduced_fn, success: -> { "success" }, failure: -> (x) { "failure: #{x}" })
+# => "success"
+
+error_reduced_fn = Hopscotch::StepComposer.compose_with_error_handling(success_step, fail_step, success_step)
+Hopscotch::Runner.call(error_reduced_fn, success: -> { "success" }, failure: -> (x) { "failure: #{x}" })
+# => "failure: bad"
 ```
 
 ### Runners
