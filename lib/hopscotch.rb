@@ -6,4 +6,11 @@ require "hopscotch/step_composers/default"
 require "hopscotch/runners/default"
 
 module Hopscotch
+  module Runner
+    extend self
+
+    def call_each(*fns, failure:, success:)
+      Hopscotch::Runners::Default.call_each(*fns, failure: failure, success: success)
+    end
+  end
 end
