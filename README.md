@@ -22,9 +22,13 @@ Or install it yourself as:
 
 The Hopscotch gem is made up out of 2 essential parts. Runners and Steps.
 
-A simple example.
+Some simple usage examples.
 
-```
+```ruby
+# Simple usage
+# - simple lambdas steps
+# - compose steps into 1 function
+# - runner call function with success/failure callbacks
 success_step = -> { Hopscotch::Step.success! }
 fail_step = -> { Hopscotch::Step.failure!("bad") }
 
@@ -35,54 +39,65 @@ Hopscotch::Runner.call(reduced_fn, success: -> { "success" }, failure: -> (x) { 
 error_reduced_fn = Hopscotch::StepComposer.compose_with_error_handling(success_step, fail_step, success_step)
 Hopscotch::Runner.call(error_reduced_fn, success: -> { "success" }, failure: -> (x) { "failure: #{x}" })
 # => "failure: bad"
+
+
+# - simple lambdas steps
+# - runner call function + compose steps inline with success/failure callbacks
+success_step_1 = -> { Hopscotch::Step.success! }
+success_step_2 = -> { Hopscotch::Step.success! }
+
+Hopscotch::Runner.call(
+  Hopscotch::StepComposer.call_each(success_step_1, success_step_2),
+  success: -> { "success" },
+  failure: -> (x) { "failure: #{x}" },
+)
+# => "success"
+
+
+# Module method to compose multiple steps into 1 step
+# - runner call composed function with success/failure callbacks
+module ChainSteps
+  extend self
+  def call
+    Hopscotch::StepComposer.call_each(
+      -> { Hopscotch::Step.success! },
+      -> do
+        if 2.even?
+          Hopscotch::Step.success!
+        else
+          Hopscotch::Step.success!
+        end
+      end
+    )
+  end
+end
+
+Hopscotch::Runner.call_each(
+  -> { ChainSteps.call },
+  success: -> { "success" },
+  failure: -> (x) { "failure: #{x}" },
+)
+# => "success"
 ```
 
 ### Runners
-A runner is a pipeline to run steos and handle the success or failure of the group of them.
+A runner is a pipeline to run steps and handle the success or failure of the group of them.
 
 Runners are not meant to be the point of reuse or shared behavior. They are simply a way to run steps.
 
-If you find yourself needing to make a new runner that follows mostly what a previous runner is doing - you should make use of the steps - not the runner.
-
 ```ruby
-module Workflow
-  module Example
-    extend self
-    # `name` is a value from the outside (controller, or rake task, etc.)
-    #
-    # `success` and `failure` are lambda's passed in from the outside.
-    # One or the other will get called when the workflow is finished depending on the status of the group of services
-    #
-    # You can pass any number of values back to the success/failure callbacks like any other ruby lambdas.
-    #
-    def call(name, success:, failure:)
-      Hopscotch::Runner.call_each(
-        -> { Service::Abc.call(name) }, # we will go into more detail about this below
-        success: -> { success.call("Workflow example worked!", Time.now.to_i) },
-        failure: failure
-      )
-    end
-  end
-end
-```
-
-**note**: example of a controller calling a workflow:
-
-```ruby
-#### Example of calling the Workflow from a controller
-class UsersController < ApplicationController
-  def create
-    success = -> (response, time) { redirect_to root_path, notice: "#{response} - at: #{time}" }
-    failure = -> { render :new }
-    Workflow::Example.call(params[:name], success: success, failure: failure)
-  end
-end
+Hopscotch::Runner.call_each(
+  -> { Hopscotch::Step.success! },
+  success: -> { success.call("The step was successful!", Time.now.to_i) },
+  failure: failure
+)
 ```
 
 ### Steps
-A step is a module that has 1 public function, `#call`.
 
-It must conform to the convention and return either `success!` or `failure!`. These two functions wrap the return value to let the workflow know if the service was successful or not.
+A step is a function type. It can be plugged into any module/class as long as it conforms to returning `Hopscotch::Step.success!` or `Hopscotch::Step.failure!`
+
+These two functions wrap the return value to let the runner know if the step was successful or not.
 
 ```ruby
 module Service
@@ -100,15 +115,54 @@ module Service
 end
 ```
 
-**note** You can optionally pass in values to `success!` and `failure!` to be used outside of the service. ie: `failure!(cart.errors)`
+**note** You can optionally pass in values to `success!` and `failure!` to be used outside of the step. ie: `failure!(cart.errors)`
 
+### A typical use-case
 
-## Reusing steps
+```ruby
+class UsersController < ApplicationController
+  def create
+    success = -> (response, time) { redirect_to root_path, notice: "#{response} - at: #{time}" }
+    failure = -> { render :new }
+    Workflow::CreateUser.call(params[:name], success: success, failure: failure)
+  end
+end
+
+module Workflow
+  module CreateUser
+    extend self
+
+    def call(name, success:, failure:)
+
+      Hopscotch::Runner.call_each(
+        -> { Service::CreateUser.call(name) },
+        success: -> { success.call("Workflow::CreateUser worked!", Time.now.to_i) },
+        failure: failure
+      )
+    end
+  end
+end
+
+module Service
+  module CreateUser
+    extend self
+
+    def call(name)
+      if User.create(name: name)
+        Hopscotch::Steps.success!
+      else
+        Hopscotch::Steps.failure!
+      end
+    end
+  end
+end
+```
+
+### Reusing steps
 
 A common problem you might run into when dealing with multiple runners and steps is the need to copy 90% of a previous runner but just change 1 or 2 step calls. Let's make it happen.
 
-
-Let's take an example of `Signup` workflow which creates a student, and sends them an email.
+Let's take an example of `Signup` runner which creates a student, and sends them an email.
 
 ```ruby
 module Workflow
@@ -119,7 +173,7 @@ module Workflow
       form = Form::NewStudent.new(student_params)
 
       Hopscotch::Runner.call_each(
-        -> { Service::CreateStudent.call(form) },
+        -> { Service::CreateStudent.call(form) }, # these return `Hopscotch::Step.success!` or `Hopscotch::Step.failure!`
         -> { Service::NotifyStudent.call(form) }
         success: success,
         failure: failure
@@ -185,9 +239,9 @@ module Workflow
 end
 ```
 
-While this example _could_ work, we're already duplicating code and things could easily get out of sync with the previous Signup workflow. Let's say steps get removed or changed and we forget to update in both places.. bug reports will soon roll in. Let's fix this.
+While this example _could_ work, we're already duplicating code and things could easily get out of sync with the previous Signup runner. Let's say steps get removed or changed and we forget to update in both places.. bug reports will soon roll in. Let's fix this.
 
-Here is where services comes to shine. Services are able to nest other services. Let's see how we can clean up our code with a new Service that utilizes this.
+Here is where Steps shine. Steps can be composed to nest other steps. Let's see how we can clean up our code with a new Step that utilizes this.
 
 ```ruby
 module Service
@@ -195,9 +249,9 @@ module Service
     extend self
 
     def call(student_form)
-      # This will bubble up the success or failure of both of these nested services
+      # This will bubble up the success or failure of both of these nested steps
       # and return a success! or failure! depending on the collected results.
-      Hopscotch::StepComposers::Default.call_each(
+      Hopscotch::StepComposer.call_each(
         -> { Service::CreateStudent.call(student_form) },
         -> { Service::NotifyStudent.call(student_form) }
       )
@@ -229,8 +283,8 @@ module Workflow
       form = Form::NewStudent.new(student_params)
 
       Hopscotch::Runner.call_each(
-        -> { Service::CreateStudentAndNotify.call(form) },
-        -> { Service::GiveFreePointsToStudent.call(form) },
+        -> { Service::CreateStudentAndNotify.call(form) }, # re-use steps
+        -> { Service::GiveFreePointsToStudent.call(form) }, # the new step
         success: success,
         failure: failure
       )
