@@ -25,7 +25,6 @@ The Hopscotch gem is made up out of 2 essential parts. Runners and Steps.
 Some simple usage examples.
 
 ```ruby
-# Simple usage
 # - simple lambdas steps
 # - compose steps into 1 function
 # - runner call function with success/failure callbacks
@@ -65,7 +64,7 @@ module ChainSteps
         if 2.even?
           Hopscotch::Step.success!
         else
-          Hopscotch::Step.success!
+          Hopscotch::Step.failure!
         end
       end
     )
