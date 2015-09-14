@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Garrett Heinlen"]
   spec.email         = ["heinleng@gmail.com"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{simplify complex business logic.}
+  spec.description   = %q{Hopscotch allows us to chain together complex logic and ensure if any specific part of the chain fails, everything is rolled back to its original state.}
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
 
