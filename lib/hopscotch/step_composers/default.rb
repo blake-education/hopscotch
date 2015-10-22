@@ -29,7 +29,7 @@ module Hopscotch
       # This is a dead giveaway that functions of this type signature will have side effects.
       #
       def compose_with_error_handling(*fns)
-        redcued_fn = fns.flatten.compact.inject do |composed, fn|
+        reduced_fn = fns.flatten.compact.inject do |composed, fn|
           -> do
             last_return = composed.call
             if Hopscotch::Error.error?(last_return)
@@ -39,7 +39,7 @@ module Hopscotch
             end
           end
         end
-        redcued_fn || -> { Hopscotch::Step.success! }
+        reduced_fn || -> { Hopscotch::Step.success! }
       end
     end
   end
