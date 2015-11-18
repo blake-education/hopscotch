@@ -20,22 +20,18 @@ module Hopscotch
       # *Note* that this isn't a general purpose composition.
       # *Note* a function here is anything that responds to `call` i.e. lambda or a singleton module.
       #
-      # The composed function and each constituent function have the same signature, roughly:
-      # ```
-      # fn :: void -> ReturnValue
-      # ```
-      #
-      # *Note* that `void` is used here to mean "takes no arguments".
-      # This is a dead giveaway that functions of this type signature will have side effects.
-      #
       def compose_with_error_handling(*fns)
         reduced_fn = fns.flatten.compact.inject do |composed, fn|
-          -> do
-            last_return = composed.call
+          proc do |*args|
+            last_return = composed.call(*args)
             if Hopscotch::Error.error?(last_return)
               last_return
             else
-              fn.call
+              # Need to special-case no-arg lambdas, or it's going break compatibility.
+              case fn.arity
+              when 0 then fn.call
+              else        fn.curry.call(last_return)
+              end
             end
           end
         end

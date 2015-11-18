@@ -36,6 +36,24 @@ describe Hopscotch::StepComposers::Default do
       r = subject.compose_with_error_handling([[], [nil], nil])
       expect(r.call).to eq(true)
     end
+
+    it 'allows values to be passed between steps' do
+      r = subject.compose_with_error_handling(
+        ->            { 123 },                     # No args
+        -> (number)   { number * 2 },              # One arg
+        -> (*numbers) { numbers.map {|n| n + 1 } } # Many args
+      ).call
+      expect(r).to eq([247])
+    end
+
+    it 'uses currying for 1+ argument steps' do
+      r = subject.compose_with_error_handling(
+        -> (number) { number * 2     }, # One arg
+        -> (n, z)   { [n + 1, z - 1] }  # Two args; curried.
+      ).call(111)
+      expect(r).to be_a(Proc)
+      expect(r.call(111)).to eq([223, 110])
+    end
   end
 
   describe '.call_each' do
