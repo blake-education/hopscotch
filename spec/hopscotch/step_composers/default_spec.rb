@@ -54,6 +54,22 @@ describe Hopscotch::StepComposers::Default do
       expect(r).to be_a(Proc)
       expect(r.call(111)).to eq([223, 110])
     end
+
+    it 'allows short pipelines of value-passing steps' do
+      effects = []
+      r = subject.compose_with_error_handling(
+        [
+          ->   { 123 },
+          -> n { n * 2 },
+          -> n { effects << n },
+        ],
+        -> { "ignores return value from previous step; returns a value that is ignored" },
+        -> { effects << "Sent Email" },
+        -> { "result" }
+      ).call
+      expect(r).to eq("result")
+      expect(effects).to eq([246, "Sent Email"])
+    end
   end
 
   describe '.call_each' do
