@@ -4,6 +4,7 @@ require "hopscotch/error"
 require "hopscotch/step"
 require "hopscotch/step_composers/default"
 require "hopscotch/runners/default"
+require "hopscotch/with"
 
 module Hopscotch
   module Runner
@@ -28,5 +29,9 @@ module Hopscotch
     def compose_with_error_handling(*fns)
       Hopscotch::StepComposers::Default.compose_with_error_handling(fns)
     end
+  end
+
+  def with(&blk)
+    Hopscotch::With.with(&blk)
   end
 end
