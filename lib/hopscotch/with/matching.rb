@@ -48,8 +48,8 @@ module Hopscotch
       end
 
       def cannot_match?(pattern, returned)
-        returned.nil? 
-          || pattern.parts.class != returned.class
-          || Array === returned && pattern.parts.size != returned.size
+        returned.nil?  || (pattern.parts.class != returned.class) || (Array === returned && pattern.parts.size != returned.size)
       end
     end
+  end
+end

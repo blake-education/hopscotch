@@ -1,8 +1,14 @@
+require 'hopscotch/with/matching'
+require 'hopscotch/with/nomatch'
+require 'hopscotch/with/execution'
+
 module Hopscotch
   module With
     extend self
+
     def with(&blk)
-      Definition.new(&blk)
+      definition = Definition.new(&blk)
+      Execution.execute(definition)
     end
 
     class Var < Struct.new(:name, :value_path)
@@ -37,7 +43,7 @@ module Hopscotch
 
       def initialize(&blk)
         @lines = []
-        @nomatch = @match = ->(*args) { args }
+        @nomatch = @final_match = ->(*args) { args }
 
         instance_exec(&blk)
 
@@ -70,16 +76,16 @@ module Hopscotch
         end
       end
 
-      def match(&blk)
+      def final_match(&blk)
         if block_given?
-          @match = blk
+          @final_match = blk
         else
-          @match
+          @final_match
         end
       end
 
       def method_missing(name, *rest)
-        Val.new(name, *rest)
+        Var.new(name, *rest)
       end
     end
   end

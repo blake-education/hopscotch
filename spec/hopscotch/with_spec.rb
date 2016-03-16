@@ -8,7 +8,15 @@ class Object
 end
 
 describe Hopscotch::With do
-  it "" do
+  it "works" do
+    input_word = "hey"
+
+    result = Hopscotch::With.with do
+      match[:ok, word ] = call(->(word) { [:ok, word] }, input_word)
+      match[:ok, word2] = call(->(word) { [:ok, word.reverse] }, word)
+    end
+
+    expect(result).to eq [:ok, "yeh"]
   end
 
   context Hopscotch::With::Definition do
@@ -25,6 +33,6 @@ describe Hopscotch::With do
   context Hopscotch::With::Pattern do
   end
 
-  context Hopscotch::With::Execute do
+  context Hopscotch::With::Execution do
   end
 end

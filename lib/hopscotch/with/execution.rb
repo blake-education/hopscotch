@@ -6,7 +6,7 @@ module Hopscotch
       def execute(definition)
         vars = {}
 
-        final_returned = defs.reduce(nil) do |_last_rv, line|
+        final_returned = definition.lines.reduce(nil) do |_last_rv, line|
           begin
             vars,result,returned = *execute_line(vars, line)
           rescue
@@ -21,12 +21,12 @@ module Hopscotch
           returned
         end
 
-        definition.match.call(*final_returned)
+        definition.final_match.call(*final_returned)
       end
 
       def execute_line(vars, line)
         resolved_args = resolve_args(vars, line)
-        returned = blk.call( *resolved_args )
+        returned = line.computation.computation.call( *resolved_args )
 
         Matching.parse_returned( vars, line, returned )
       end
@@ -45,7 +45,9 @@ module Hopscotch
 
       # XXX behaviour when fetch fails?
       def resolve_var(value, arg)
-        arg.value_path.reduce(value) do |value, index|
+        value_path = arg.value_path || []
+
+        value_path.reduce(value) do |value, index|
           value.fetch(index)
         end
       rescue IndexError,KeyError
