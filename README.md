@@ -311,6 +311,51 @@ module Workflow
 end
 ```
 
+## With
+
+Modeled after [Elixir's `with` special form](http://elixir-lang.org/docs/stable/elixir/Kernel.SpecialForms.html#with/1) (which is of course modeled after similar constructs in many other languages)
+
+```
+module BuildCommonObjects
+  extend self
+  def call(argv)
+    ...
+    [:ok, opts, client, cluster, app, revision]
+  end
+end
+
+module ClusterHelpers
+  extend self
+  def frob_cluster(client, cluster)
+    ...
+  end
+end
+
+deploy_cluster = ->(client, cluster) do
+  if client.deploy_cluster(cluster)
+    [:ok]
+  else
+    [:err, "failed to deploy cluster :("]
+  end
+end
+
+Hopscotch.with do
+  match[:ok, opts, client, cluster, app, revision] = call(ParseARGV, ARGV)
+  match[:ok, running_shas]                         = call(FindRunningShas, client, cluster, app)
+
+  match[:ok, env]                                  = call(GetAppConfig, client, cluster, app)
+  match[]                                          = call(UI::Printf, "current env is:\n%s\n", env)
+  match[:ok]                                       = call(UI::Continue, "If that makes you happy, hit enter (ctrl-c to abort)")
+
+  match[:ok]                                       = call(deploy_cluster, cluster)
+  ...
+  match[:ok]                                       = call(ClusterHelpers.method(:frob_cluster), client, cluster)
+  match[:ok]                                       = call(GetClusterState, client, cluster)
+
+  final_match  do
+end
+```
+
 2 runners, different behavior - no duplication. It's a beauty.
 
 ## Development
