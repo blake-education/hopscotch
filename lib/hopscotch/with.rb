@@ -5,9 +5,21 @@ module Hopscotch
       Definition.new(&blk)
     end
 
-    Val         = Struct.new(:name, :rest)
-    Pattern     = Struct.new(:parts)
-    Computation = Struct.new(:computation, :args)
+    class Var < Struct.new(:name, :value_path)
+      def to_s
+        name.to_s
+      end
+    end
+    class Pattern < Struct.new(:parts)
+      def to_s
+        "pat(#{ parts.map(&:to_s).join(',') })"
+      end
+    end
+    class Computation < Struct.new(:computation, :args)
+      def to_s
+        "#{computation.to_s}( #{ args.map(&:to_s).join(',')} )"
+      end
+    end
 
     class Line < Struct.new(:callsite, :pattern, :computation)
       def []=(*args)
