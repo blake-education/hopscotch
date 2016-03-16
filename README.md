@@ -339,7 +339,7 @@ deploy_cluster = ->(client, cluster) do
   end
 end
 
-Hopscotch.with do
+status_msg = Hopscotch.with do
   match[:ok, opts, client, cluster, app, revision] = call(ParseARGV, ARGV)
   match[:ok, running_shas]                         = call(FindRunningShas, client, cluster, app)
 
@@ -350,9 +350,15 @@ Hopscotch.with do
   match[:ok]                                       = call(deploy_cluster, cluster)
   ...
   match[:ok]                                       = call(ClusterHelpers.method(:frob_cluster), client, cluster)
-  match[:ok]                                       = call(GetClusterState, client, cluster)
+  match[:ok, state]                                = call(GetClusterState, client, cluster)
 
-  final_match  do
+  final_match do |_ok, state|
+    state[:text_status]
+  end
+
+  nomatch do |_err, reason, *rest|
+    "failed to deploy the cluster: #{reason}"
+  end
 end
 ```
 
