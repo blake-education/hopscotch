@@ -315,7 +315,7 @@ end
 
 Modeled after [Elixir's `with` special form](http://elixir-lang.org/docs/stable/elixir/Kernel.SpecialForms.html#with/1) (which is of course modeled after similar constructs in many other languages)
 
-```
+```ruby
 module BuildCommonObjects
   extend self
   def call(argv)
