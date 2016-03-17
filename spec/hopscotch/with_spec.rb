@@ -55,6 +55,21 @@ describe Hopscotch::With do
     expect(result).to eq "hey"
   end
 
+  it "can use multiple blocks" do
+    input_word = "hey"
+
+    another_block = -> {
+      match[:ok, word] = call(->(word) { [:ok, "xx#{word}zz"] }, input_word)
+    }
+
+    result = Hopscotch::With.with(blocks: another_block) do
+      match[:ok, word ] = call(->(word) { [:ok, word] }, word)
+      match[:ok, word2] = call(->(word) { [:ok, word.reverse] }, word)
+    end
+
+    expect(result).to eq [:ok, "zzyehxx"]
+  end
+
   context Hopscotch::With::Definition do
     it "does the definition" do
       defn = Hopscotch::With::Definition.new do

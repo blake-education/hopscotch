@@ -6,8 +6,8 @@ module Hopscotch
   module With
     extend self
 
-    def with(&blk)
-      definition = Definition.new(&blk)
+    def with(blocks: [], &blk)
+      definition = Definition.new(blocks: blocks, &blk)
       Execution.execute(definition)
     end
 
@@ -41,11 +41,15 @@ module Hopscotch
     class Definition
       attr_reader :lines
 
-      def initialize(&blk)
+      def initialize(blocks: [], &blk)
         @lines = []
         @nomatch = @final_match = ->(*args) { args }
 
-        instance_exec(&blk)
+        blocks = [blocks, blk].flatten.compact
+
+        blocks.each do |blk|
+          instance_exec(&blk)
+        end
 
         if @unwrap_nomatch
           @nomatch = Nomatch.method(:unwrap_nomatch)
