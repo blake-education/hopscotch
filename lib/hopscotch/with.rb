@@ -1,6 +1,7 @@
 require 'hopscotch/with/matching'
 require 'hopscotch/with/nomatch'
 require 'hopscotch/with/execution'
+require 'hopscotch/with/loop_runner'
 
 module Hopscotch
   module With
