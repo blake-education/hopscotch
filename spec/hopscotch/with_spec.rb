@@ -70,6 +70,23 @@ describe Hopscotch::With do
     expect(result).to eq [:ok, "zzyehxx"]
   end
 
+  it "works naturally with nesting" do
+    input_word = "hey"
+
+    nested = ->(input_word) {
+      Hopscotch::With.with do
+        match[:ok, word ] = call(->(word) { [:ok, word.reverse] }, input_word)
+      end
+    }
+
+    result = Hopscotch::With.with do
+      match[:ok, word ] = call(nested, input_word)
+      match[:ok, word2] = call(->(word) { [:ok, word.reverse] }, word)
+    end
+
+    expect(result).to eq [:ok, "hey"]
+  end
+
   context Hopscotch::With::Definition do
     it "does the definition" do
       defn = Hopscotch::With::Definition.new do
