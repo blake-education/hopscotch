@@ -31,7 +31,7 @@ module Hopscotch
     end
   end
 
-  def with(blocks: [], &blk)
+  def self.with(blocks: [], &blk)
     Hopscotch::With.with(blocks: blocks, &blk)
   end
 end
