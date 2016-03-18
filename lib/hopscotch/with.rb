@@ -49,7 +49,9 @@ module Hopscotch
         blocks = [blocks, blk].flatten.compact
 
         blocks.each do |blk|
+          @current_block_self = blk.binding.eval("self")
           instance_exec(&blk)
+          @current_block_self = nil
         end
 
         if @unwrap_nomatch
