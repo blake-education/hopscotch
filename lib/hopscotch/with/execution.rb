@@ -6,7 +6,9 @@ module Hopscotch
       def execute(definition)
         vars = {}
 
-        final_returned = definition.lines.reduce(nil) do |_last_rv, line|
+        lines = [ definition.lines, definition.post_lines ].flatten.compact
+
+        final_returned = lines.reduce(nil) do |_last_rv, line|
           begin
             vars,result,returned = *execute_line(vars, line)
           rescue
@@ -15,13 +17,18 @@ module Hopscotch
           end
 
           unless result
-            return definition.nomatch.call(*returned)
+            puts "calling nm"
+            if nomatch_line = definition.nomatch
+              execute_line(vars, nomatch_line)
+            end
           end
 
           returned
         end
 
-        definition.final_match.call(*final_returned)
+
+
+        line.block_self.instance_exec(definition.final_match.call(*final_returned))
       end
 
       def execute_line(vars, line)

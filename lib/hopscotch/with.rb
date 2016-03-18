@@ -18,6 +18,10 @@ module Hopscotch
       end
     end
     class Pattern < Struct.new(:parts)
+      def self.wildcard
+        new([])
+      end
+
       def to_s
         "pat(#{ parts.map(&:to_s).join(',') })"
       end
@@ -28,7 +32,7 @@ module Hopscotch
       end
     end
 
-    class Line < Struct.new(:callsite, :pattern, :computation)
+    class Line < Struct.new(:block_self, :callsite, :pattern, :computation)
       def []=(*args)
         self.computation = args.pop
         self.pattern = Pattern.new(args)
@@ -44,7 +48,7 @@ module Hopscotch
 
       def initialize(blocks: [], &blk)
         @lines = []
-        @nomatch = @final_match = ->(*args) { args }
+        @post_lines = []
 
         blocks = [blocks, blk].flatten.compact
 
@@ -54,14 +58,14 @@ module Hopscotch
           @current_block_self = nil
         end
 
-        if @unwrap_nomatch
-          @nomatch = Nomatch.method(:unwrap_nomatch)
-        end
+        #if @unwrap_nomatch
+          #@nomatch = Nomatch.method(:unwrap_nomatch)
+        #end
       end
 
       def match
         # TODO record callsite (caller)
-        Line.new(caller.first).tap do |l|
+        Line.new(@current_block_self, caller.first).tap do |l|
           @lines << l
         end
       end
@@ -77,18 +81,14 @@ module Hopscotch
 
       def nomatch(&blk)
         if block_given?
-          @nomatch = blk
+          @nomatch = Line.new(@current_block_self, caller.first, Pattern.wildcard, &blk)
         else
           @nomatch
         end
       end
 
       def final_match(&blk)
-        if block_given?
-          @final_match = blk
-        else
-          @final_match
-        end
+        @post_lines << Line.new(@current_block_self, caller.first, Pattern.wildcard, &blk)
       end
 
       def method_missing(name, *rest)
