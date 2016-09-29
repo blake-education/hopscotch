@@ -23,6 +23,7 @@ describe Hopscotch::Runners::Default do
     let(:success) { ->(v) { messages << v } }
     let(:success_no_arg) { -> { messages << :success_no_arg } }
     let(:failure) { ->(v) { messages << v } }
+    let(:invalid_failure) { -> { } }
 
     it "runs a successful workflow, with success result" do
       subject.call(successful_fn, success: success, failure: failure)
@@ -37,6 +38,10 @@ describe Hopscotch::Runners::Default do
     it "runs an unsuccessful workflow" do
       subject.call(failure_fn, success: success, failure: failure)
       expect(messages).to eq([:failed])
+    end
+
+    it "throws an exception when the failure lambda does not contain a first argument" do
+      expect { subject.call(failure_fn, success: success, failure: invalid_failure) }.to raise_error(ArgumentError)
     end
   end
 

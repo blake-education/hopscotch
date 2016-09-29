@@ -22,7 +22,7 @@ module Hopscotch
         result = nil
 
         if failure.arity != 1
-          raise ArgumentError, "failure lambda requires a error value argument."
+          raise ArgumentError, "failure lambda requires an error value argument."
         end
 
         ActiveRecord::Base.transaction do
