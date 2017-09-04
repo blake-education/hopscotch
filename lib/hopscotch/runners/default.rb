@@ -31,6 +31,7 @@ module Hopscotch
         end
 
         if error
+          Hopscotch.logger.error("Hopscotch error: #{error.value}")
           failure.call(error.value)
         else
           success.arity == 1 ? success.call(result) : success.call
