@@ -6,6 +6,18 @@ require "hopscotch/step_composers/default"
 require "hopscotch/runners/default"
 
 module Hopscotch
+  class << self
+    attr_writer :logger
+
+    # Defaults to the ruby logger, override to your preferred logger in your app
+    # example
+    # ```
+    # Hopscotch.logger = Rails.logger
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+  end
+
   module Runner
     extend self
 
