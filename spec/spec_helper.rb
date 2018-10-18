@@ -1,3 +1,5 @@
+require 'simplecov' if ENV['COVERAGE'] != 'off'
+
 require 'hopscotch'
 
 RSpec.configure do |config|
